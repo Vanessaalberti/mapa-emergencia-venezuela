@@ -25,7 +25,7 @@ export function useAdminUsers(): UseAdminUsersResult {
     if (fetchError) {
       setError(fetchError.message)
     } else {
-      setProfiles(data ?? [])
+      setProfiles((data ?? []) as Profile[])
       setError(null)
     }
     setLoading(false)

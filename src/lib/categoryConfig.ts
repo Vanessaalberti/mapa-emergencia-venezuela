@@ -35,6 +35,7 @@ export const CATEGORY_CONFIG: Record<ReportCategory, CategoryConfig> = {
   calles_bloqueadas: { label: 'Calles bloqueadas', emoji: '🚧', color: '#334155' },
   edificios_colapsados: { label: 'Edificios colapsados', emoji: '🏚️', color: '#92400E' },
   incendios: { label: 'Incendios', emoji: '🔥', color: COLORS.critical },
+  inundaciones: { label: 'Inundaciones', emoji: '🌊', color: COLORS.water },
   helipuertos: { label: 'Helipuertos', emoji: '🚁', color: COLORS.info },
   bomberos: { label: 'Bomberos', emoji: '🚒', color: COLORS.critical },
   policia: { label: 'Policía', emoji: '🚓', color: COLORS.info },

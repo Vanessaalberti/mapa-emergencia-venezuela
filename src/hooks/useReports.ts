@@ -30,7 +30,7 @@ export function useReports(): UseReportsResult {
     if (fetchError) {
       setError(fetchError.message)
     } else {
-      setReports(data ?? [])
+      setReports((data ?? []) as Report[])
       setError(null)
     }
     setLoading(false)

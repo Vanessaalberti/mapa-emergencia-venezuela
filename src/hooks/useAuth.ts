@@ -20,7 +20,7 @@ export function useAuth(): UseAuthResult {
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-    setProfile(data ?? null)
+    setProfile(data as Profile ?? null)
   }, [])
 
   useEffect(() => {

@@ -1,12 +1,26 @@
-export type UserRole = 'visitante' | 'usuario' | 'voluntario' | 'moderador' | 'administrador'
+import type { Database as GeneratedDatabase } from './database.types'
 
-export interface Profile {
-  id: string
-  display_name: string | null
-  role: UserRole
-  created_at: string
-  updated_at: string
-}
+export type { Database } from './database.types'
+
+// ── Tipos de dominio ─────────────────────────────────────────────────────────
+
+export type UserRole =
+  | 'visitante'
+  | 'usuario'
+  | 'voluntario'
+  | 'moderador'
+  | 'administrador'
+
+export type ReportStatus =
+  | 'sin_verificar'
+  | 'verificado'
+  | 'en_proceso'
+  | 'equipo_asignado'
+  | 'atendido'
+  | 'resuelto'
+  | 'archivado'
+
+export type ReportPriority = 'critica' | 'alta' | 'media' | 'baja'
 
 export type ReportCategory =
   | 'personas_atrapadas'
@@ -23,6 +37,7 @@ export type ReportCategory =
   | 'calles_bloqueadas'
   | 'edificios_colapsados'
   | 'incendios'
+  | 'inundaciones'
   | 'helipuertos'
   | 'bomberos'
   | 'policia'
@@ -34,55 +49,30 @@ export type ReportCategory =
   | 'solicitud_ayuda'
   | 'otros'
 
-export type ReportStatus =
-  | 'sin_verificar'
-  | 'verificado'
-  | 'en_proceso'
-  | 'equipo_asignado'
-  | 'atendido'
-  | 'resuelto'
-  | 'archivado'
+// ── Tipos derivados de la DB generada ────────────────────────────────────────
+// El archivo generado usa `string` para columnas text de Postgres.
+// Acá sobreescribimos esos campos con nuestros union types específicos
+// para que el resto del código (CATEGORY_CONFIG, STATUS_CONFIG, etc.)
+// reciba tipos correctos sin tener que hacer casts en cada componente.
 
-export type ReportPriority = 'critica' | 'alta' | 'media' | 'baja'
+type RawReport = GeneratedDatabase['public']['Tables']['reports']['Row']
+type RawReportInsert = GeneratedDatabase['public']['Tables']['reports']['Insert']
+type RawProfile = GeneratedDatabase['public']['Tables']['profiles']['Row']
 
-export interface Report {
-  id: string
-  latitude: number
-  longitude: number
-  address: string | null
+export type Report = Omit<RawReport, 'category' | 'status' | 'priority'> & {
   category: ReportCategory
-  title: string
-  description: string | null
   status: ReportStatus
   priority: ReportPriority
-  people_count: number | null
-  contact_info: string | null
-  confirmations_count: number
-  created_by: string | null
-  created_at: string
-  updated_at: string
 }
 
-export type ReportInsert = Omit<
-  Report,
-  'id' | 'confirmations_count' | 'created_at' | 'updated_at'
->
+export type ReportInsert = Omit<RawReportInsert, 'category' | 'status' | 'priority'> & {
+  category: ReportCategory
+  status?: ReportStatus
+  priority?: ReportPriority
+}
 
-// Tipo mínimo de Database para que supabase-js infiera tipos en las queries.
-// Se irá ampliando en próximas fases (comments, report_media, etc).
-export interface Database {
-  public: {
-    Tables: {
-      reports: {
-        Row: Report
-        Insert: ReportInsert
-        Update: Partial<ReportInsert>
-      }
-      profiles: {
-        Row: Profile
-        Insert: Omit<Profile, 'created_at' | 'updated_at'>
-        Update: Partial<Pick<Profile, 'display_name' | 'role'>>
-      }
-    }
-  }
+export type ReportUpdate = Partial<ReportInsert>
+
+export type Profile = Omit<RawProfile, 'role'> & {
+  role: UserRole
 }
