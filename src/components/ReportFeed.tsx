@@ -7,9 +7,22 @@ interface ReportFeedProps {
   reports: Report[]
   selectedReportId: string | null
   onSelectReport: (reportId: string) => void
+
+  currentPage: number
+  totalPages: number
+  onNextPage: () => void
+  onPreviousPage: () => void
 }
 
-export function ReportFeed({ reports, selectedReportId, onSelectReport }: ReportFeedProps) {
+export function ReportFeed({
+  reports,
+  selectedReportId,
+  onSelectReport,
+  currentPage,
+  totalPages,
+  onNextPage,
+  onPreviousPage,
+}: ReportFeedProps) {
   if (reports.length === 0) {
     return (
       <div className="flex h-full items-center justify-center p-6 text-center text-ink-secondary">
@@ -19,7 +32,10 @@ export function ReportFeed({ reports, selectedReportId, onSelectReport }: Report
   }
 
   return (
-    <div className="h-full overflow-y-auto divide-y divide-border">
+  <div className="h-full flex flex-col">
+
+    {/* LISTA */}
+    <div className="flex-1 overflow-y-auto divide-y divide-border">
       {reports.map((report) => {
         const category = CATEGORY_CONFIG[report.category]
         const priority = PRIORITY_CONFIG[report.priority]
@@ -31,9 +47,7 @@ export function ReportFeed({ reports, selectedReportId, onSelectReport }: Report
             key={report.id}
             onClick={() => onSelectReport(report.id)}
             className={`w-full text-left p-4 flex gap-3 transition-colors ${
-              isSelected
-                ? 'bg-info/10'
-                : 'hover:bg-bg-secondary'
+              isSelected ? 'bg-info/10' : 'hover:bg-bg-secondary'
             }`}
           >
             <div
@@ -48,6 +62,7 @@ export function ReportFeed({ reports, selectedReportId, onSelectReport }: Report
                 <span className="font-semibold text-sm truncate text-ink-primary">
                   {report.title}
                 </span>
+
                 <span
                   className="flex-shrink-0 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full text-white"
                   style={{ backgroundColor: priority.color }}
@@ -57,7 +72,9 @@ export function ReportFeed({ reports, selectedReportId, onSelectReport }: Report
               </div>
 
               {report.address && (
-                <p className="text-xs text-ink-secondary truncate mt-0.5">{report.address}</p>
+                <p className="text-xs text-ink-secondary truncate mt-0.5">
+                  {report.address}
+                </p>
               )}
 
               {report.description && (
@@ -73,7 +90,9 @@ export function ReportFeed({ reports, selectedReportId, onSelectReport }: Report
                     locale: es,
                   })}
                 </span>
+
                 <span>•</span>
+
                 <span className="flex items-center gap-1">
                   <span
                     className="h-1.5 w-1.5 rounded-full"
@@ -81,7 +100,9 @@ export function ReportFeed({ reports, selectedReportId, onSelectReport }: Report
                   />
                   {status.label}
                 </span>
+
                 <span>•</span>
+
                 <span>✅ {report.confirmations_count}</span>
               </div>
             </div>
@@ -89,5 +110,30 @@ export function ReportFeed({ reports, selectedReportId, onSelectReport }: Report
         )
       })}
     </div>
-  )
+
+    {/* PAGINACIÓN */}
+    <div className="border-t border-border flex items-center justify-between p-3 bg-bg-primary">
+      <button
+        onClick={onPreviousPage}
+        disabled={currentPage === 1}
+        className="px-3 py-1 rounded border text-sm disabled:opacity-40"
+      >
+        ← Anterior
+      </button>
+
+      <span className="text-sm text-ink-secondary">
+        Página {currentPage} de {totalPages}
+      </span>
+
+      <button
+        onClick={onNextPage}
+        disabled={currentPage === totalPages}
+        className="px-3 py-1 rounded border text-sm disabled:opacity-40"
+      >
+        Siguiente →
+      </button>
+    </div>
+
+  </div>
+)
 }

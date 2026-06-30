@@ -11,6 +11,7 @@ const CATEGORY_ORDER: ReportCategory[] = [
   'heridos',
   'solicitud_ayuda',
   'incendios',
+  'inundaciones',
   'edificios_colapsados',
   'zonas_peligrosas',
   'calles_bloqueadas',

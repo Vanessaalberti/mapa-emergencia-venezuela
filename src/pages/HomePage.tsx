@@ -13,11 +13,14 @@ import { ProfileModal } from '../components/ProfileModal'
 import { AdminPanel } from '../components/admin/AdminPanel'
 import { useReports } from '../hooks/useReports'
 import { useLayers } from '../hooks/useLayers'
+import { Footer } from '../components/Footer'
+import { usePaginatedReports } from '../hooks/usePaginatedReports'
 
 type ActiveModal = 'report' | 'needHelp' | 'layers' | 'auth' | 'profile' | 'admin' | null
 
 export function HomePage() {
   const { reports, loading, error } = useReports()
+  const { reports: paginatedReports, currentPage, totalPages, nextPage, previousPage, } = usePaginatedReports()
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
   const [activeModal, setActiveModal] = useState<ActiveModal>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -32,11 +35,13 @@ export function HomePage() {
     isAllVisible,
   } = useLayers()
 
-  // El feed respeta las mismas capas activas que el mapa, para mantener todo consistente
-  const visibleReports = useMemo(
-    () => reports.filter((report) => visibleCategories.has(report.category)),
-    [reports, visibleCategories]
-  )
+  const visiblePaginatedReports = useMemo(
+  () =>
+    paginatedReports.filter((report) =>
+      visibleCategories.has(report.category)
+    ),
+  [paginatedReports, visibleCategories]
+)
 
   // Mismo handler para clic en marcador o en tarjeta del feed: mantiene todo sincronizado
   const handleSelectReport = useCallback((reportId: string) => {
@@ -91,9 +96,13 @@ export function HomePage() {
 
       <div className="border-t border-border" style={{ flex: '1 1 0%' }}>
         <ReportFeed
-          reports={visibleReports}
+          reports={visiblePaginatedReports}
           selectedReportId={selectedReportId}
           onSelectReport={handleSelectReport}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onNextPage={nextPage}
+          onPreviousPage={previousPage}
         />
       </div>
 
@@ -136,6 +145,7 @@ export function HomePage() {
       {successMessage && (
         <SuccessToast message={successMessage} onDismiss={() => setSuccessMessage(null)} />
       )}
+      <Footer />
     </div>
   )
 }
