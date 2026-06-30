@@ -75,6 +75,63 @@ export type Database = {
           },
         ]
       }
+      foreign_aid_centers: {
+        Row: {
+          accepts_monetary_donations: boolean
+          accepts_physical_donations: boolean
+          address: string | null
+          city: string
+          collection_dates: string | null
+          contact_info: string | null
+          country: string
+          created_at: string
+          created_by: string
+          description: string | null
+          donation_link: string | null
+          id: string
+          schedule: string | null
+          title: string
+          updated_at: string
+          verified: boolean
+        }
+        Insert: {
+          accepts_monetary_donations?: boolean
+          accepts_physical_donations?: boolean
+          address?: string | null
+          city: string
+          collection_dates?: string | null
+          contact_info?: string | null
+          country: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          donation_link?: string | null
+          id?: string
+          schedule?: string | null
+          title: string
+          updated_at?: string
+          verified?: boolean
+        }
+        Update: {
+          accepts_monetary_donations?: boolean
+          accepts_physical_donations?: boolean
+          address?: string | null
+          city?: string
+          collection_dates?: string | null
+          contact_info?: string | null
+          country?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          donation_link?: string | null
+          id?: string
+          schedule?: string | null
+          title?: string
+          updated_at?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
