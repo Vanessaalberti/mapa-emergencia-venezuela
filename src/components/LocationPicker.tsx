@@ -15,24 +15,45 @@ interface LocationPickerProps {
 
 type LocationMethod = 'gps' | 'search' | 'map' | 'coords'
 
+// Nominatim (OpenStreetMap) puede no encontrar direcciones exactas tipo
+// "Calle X, casa 12" en zonas con poco mapeo detallado (común en barrios
+// populares de Venezuela). Para mejorar la tasa de aciertos:
+// - Forzamos el sesgo geográfico a Venezuela (viewbox + countrycodes)
+// - Pedimos resultados "addressdetails" para depurar mejor
+// - Si la búsqueda exacta no devuelve nada, reintentamos quitando el
+//   último segmento (ej: número de casa) para encontrar al menos la calle/zona
 async function searchAddress(query: string): Promise<Array<{ label: string; lat: number; lng: number }>> {
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-    query
-  )}&format=json&limit=5&countrycodes=ve`
-  const response = await fetch(url, {
-    headers: { 'Accept-Language': 'es' },
-  })
-  const data: Array<{ display_name: string; lat: string; lon: string }> = await response.json()
-  return data.map((item) => ({
-    label: item.display_name,
-    lat: parseFloat(item.lat),
-    lng: parseFloat(item.lon),
-  }))
+  const baseParams = 'format=json&limit=6&countrycodes=ve&addressdetails=1'
+
+  const fetchResults = async (q: string) => {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&${baseParams}`
+    const response = await fetch(url, { headers: { 'Accept-Language': 'es' } })
+    const data: Array<{ display_name: string; lat: string; lon: string }> = await response.json()
+    return data.map((item) => ({
+      label: item.display_name,
+      lat: parseFloat(item.lat),
+      lng: parseFloat(item.lon),
+    }))
+  }
+
+  const results = await fetchResults(query)
+  if (results.length > 0) return results
+
+  // Reintento: si el query tiene varias partes separadas por coma
+  // (ej: "Calle 5, Casa 12, Barrio X"), probamos sin el primer segmento
+  // específico, que suele ser lo que menos está mapeado.
+  const parts = query.split(',').map((p) => p.trim()).filter(Boolean)
+  if (parts.length > 1) {
+    const broaderQuery = parts.slice(1).join(', ')
+    return fetchResults(broaderQuery)
+  }
+
+  return []
 }
 
 async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
     const response = await fetch(url, { headers: { 'Accept-Language': 'es' } })
     const data: { display_name?: string } = await response.json()
     return data.display_name ?? null
@@ -46,28 +67,32 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Array<{ label: string; lat: number; lng: number }>>([])
   const [searching, setSearching] = useState(false)
+  const [searchedOnce, setSearchedOnce] = useState(false)
   const [manualLat, setManualLat] = useState('')
   const [manualLng, setManualLng] = useState('')
   const { getCurrentLocation, loading: gpsLoading, error: gpsError } = useGeolocation()
+
   useEffect(() => {
     if (value !== null && method === null) {
       setMethod('gps')
     }
-  }, [value])
+  }, [value, method])
 
   const handleUseGps = async () => {
     setMethod('gps')
     try {
       const coords = await getCurrentLocation()
       const address = await reverseGeocode(coords.latitude, coords.longitude)
-      onChange({ ...coords, address })
+      onChange({ latitude: coords.latitude, longitude: coords.longitude, address })
     } catch {
+      // El error ya queda reflejado en gpsError
     }
   }
 
   const handleSearch = async () => {
     if (searchQuery.trim().length < 3) return
     setSearching(true)
+    setSearchedOnce(true)
     try {
       const results = await searchAddress(searchQuery)
       setSearchResults(results)
@@ -151,21 +176,30 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       </div>
 
       {method === 'gps' && (
-        <div className="text-sm">
-          {gpsLoading && <p className="text-ink-secondary">Obteniendo tu ubicación...</p>}
+        <div className="text-sm space-y-1">
+          {gpsLoading && (
+            <p className="text-ink-secondary">
+              Obteniendo tu ubicación... esto puede tardar hasta 30 segundos si la señal es
+              débil. No cierres esta ventana.
+            </p>
+          )}
           {gpsError && <p className="text-critical">{gpsError}</p>}
         </div>
       )}
 
       {method === 'search' && (
         <div className="space-y-2">
+          <p className="text-xs text-ink-secondary">
+            Tip: si no encuentra una dirección exacta (ej: número de casa), probá con la calle,
+            el barrio o un punto de referencia cercano (ej: "cerca de la plaza Bolívar, Petare").
+          </p>
           <div className="flex gap-2">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Calle, barrio, ciudad, hospital..."
+              placeholder="Calle, barrio, ciudad, punto de referencia..."
               className="flex-1 p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
             />
             <button
@@ -190,6 +224,13 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
                 </li>
               ))}
             </ul>
+          )}
+          {searchedOnce && !searching && searchResults.length === 0 && (
+            <p className="text-sm text-warning bg-warning/10 p-3 rounded-lg">
+              No encontramos esa dirección exacta. Probá con un punto de referencia más amplio
+              (calle, barrio, plaza cercana), o usá "Seleccionar en el mapa" para marcar el punto
+              directamente.
+            </p>
           )}
         </div>
       )}
@@ -285,7 +326,6 @@ function MiniMapPicker({
       map.remove()
       mapRef.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

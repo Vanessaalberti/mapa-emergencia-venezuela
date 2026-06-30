@@ -76,3 +76,27 @@ export type ReportUpdate = Partial<ReportInsert>
 export type Profile = Omit<RawProfile, 'role'> & {
   role: UserRole
 }
+
+export interface ForeignAidCenter {
+  id: string
+  country: string
+  city: string
+  title: string
+  description: string | null
+  address: string | null
+  schedule: string | null
+  collection_dates: string | null
+  accepts_physical_donations: boolean
+  accepts_monetary_donations: boolean
+  donation_link: string | null
+  contact_info: string | null
+  verified: boolean
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export type ForeignAidCenterInsert = Omit<
+  ForeignAidCenter,
+  'id' | 'verified' | 'created_at' | 'updated_at'
+>

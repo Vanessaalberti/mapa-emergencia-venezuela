@@ -36,21 +36,10 @@ export function Footer() {
             >mapaemergenciavenezuela@gmail.com
             </a>
             <p className="text-xs text-text-secondary">⚠️ Esta plataforma se encuentra en desarrollo activo. Algunas funciones pueden cambiar o mejorar con el tiempo.</p>
-
-            <div className="pt-4 border-t border-border">
-              <p className="text-sm text-text-secondary">
-                © {new Date().getFullYear()} Mapa de Emergencia Venezuela
-              </p>
-
-              <p className="text-sm text-text-secondary mt-1">
-                Todos los derechos reservados.
-              </p>
-
-              <p className="text-xs text-text-secondary mt-4">
+            <p className="text-xs text-text-secondary mt-4">
                 Si tienes sugerencias, detectas información incorrecta o deseas
                 colaborar con el proyecto, no dudes en escribirnos.
-              </p>
-            </div>
+            </p>
           </div>
 
         </div>
