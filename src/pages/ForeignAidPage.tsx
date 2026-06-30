@@ -4,11 +4,19 @@ import { useForeignAidCenters } from '../hooks/useForeignAidCenters'
 import { ForeignAidForm } from '../components/ForeignAidForm'
 import { SuccessToast } from '../components/SuccessToast'
 import type { ForeignAidCenter } from '../types/database'
+import { UserMenuButton } from '../components/UserMenuButton'
+import { useAuthContext } from '../store/AuthContext'
+import { AuthModal } from '../components/AuthModal'
+import { ProfileModal } from '../components/ProfileModal'
 
 export function ForeignAidPage() {
   const { centers, loading, error, createCenter } = useForeignAidCenters()
   const [showForm, setShowForm] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  const { session } = useAuthContext()
 
   const centersByCountry = useMemo(() => {
     const grouped: Record<string, ForeignAidCenter[]> = {}
@@ -35,14 +43,27 @@ export function ForeignAidPage() {
           <h1 className="font-bold text-ink-primary truncate">🌍 Ayuda desde el extranjero</h1>
         </div>
 
+        <div className="flex items-center gap-2 flex-shrink-0">
         <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="flex-shrink-0 px-3 py-2 rounded-full bg-info hover:bg-info-hover text-white text-sm font-semibold transition-colors"
-        >
-          + Publicar
-        </button>
-      </div>
+              type="button"
+              onClick={() => {
+                if (!session) {
+                  setShowAuthModal(true)
+                  return
+                }
+                setShowForm(true)
+              }}
+              className="px-3 py-2 rounded-full bg-info hover:bg-info-hover text-white text-sm font-semibold transition-colors"
+            >
+              + Publicar
+            </button>
+
+            <UserMenuButton
+              onOpenAuth={() => setShowAuthModal(true)}
+              onOpenProfile={() => setShowProfileModal(true)}
+            />
+          </div>
+          </div>
 
       <div className="max-w-3xl mx-auto p-4 space-y-6">
         <p className="text-sm text-ink-secondary">
@@ -94,6 +115,16 @@ export function ForeignAidPage() {
             setShowForm(false)
             setSuccessMessage('Publicado correctamente.')
           }}
+        />
+      )}
+      {showAuthModal && (
+        <AuthModal onClose={() => setShowAuthModal(false)} />
+      )}
+
+      {showProfileModal && (
+        <ProfileModal
+          onClose={() => setShowProfileModal(false)}
+          onOpenAdminPanel={() => {}}
         />
       )}
 
