@@ -14,10 +14,10 @@ export function TopBar({
   onOpenProfile,
 }: TopBarProps) {
   return (
-    <div className="flex items-center justify-between gap-2 px-3 py-2 bg-bg-primary dark:bg-neutral-900 border-b border-border dark:border-neutral-800 z-[1500] relative">
+    <div className="flex items-center justify-between gap-2 px-3 py-2 bg-bg-primary border-b border-border z-[1500] relative">
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-2xl flex-shrink-0">🚨</span>
-        <span className="font-bold text-sm sm:text-base truncate text-ink-primary dark:text-neutral-100">
+        <span className="font-bold text-sm sm:text-base truncate text-ink-primary">
           Mapa de Emergencia Venezuela
         </span>
       </div>

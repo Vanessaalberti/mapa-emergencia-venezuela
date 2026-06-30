@@ -4,6 +4,7 @@ import { LocationPicker, type SelectedLocation } from './LocationPicker'
 import { CategoryPicker } from './CategoryPicker'
 import { useCreateReport } from '../hooks/useCreateReport'
 import type { ReportCategory, ReportPriority } from '../types/database'
+import { getPriorityByCategory } from '../lib/categoryConfig'
 
 interface ReportFormProps {
   onClose: () => void
@@ -33,6 +34,10 @@ export function ReportForm({ onClose, onSuccess }: ReportFormProps) {
     if (!location || !category || !canSubmit) return
 
     setSubmitError(null)
+    const reportPriority =
+      category === 'otros'
+        ? priority
+        : getPriorityByCategory(category)
     const { success, error } = await createReport({
       latitude: location.latitude,
       longitude: location.longitude,
@@ -41,7 +46,7 @@ export function ReportForm({ onClose, onSuccess }: ReportFormProps) {
       title: title.trim(),
       description: description.trim() || null,
       status: 'sin_verificar',
-      priority,
+      priority: reportPriority,
       people_count: peopleCount ? parseInt(peopleCount, 10) : null,
       contact_info: contactInfo.trim() || null,
     })
@@ -132,8 +137,12 @@ export function ReportForm({ onClose, onSuccess }: ReportFormProps) {
               </div>
             </div>
 
+            {category === 'otros' && (
             <div>
-              <label className="text-sm font-medium block mb-2">Prioridad</label>
+              <label className="text-sm font-medium block mb-2">
+                Prioridad
+              </label>
+
               <div className="grid grid-cols-4 gap-2">
                 {(['critica', 'alta', 'media', 'baja'] as ReportPriority[]).map((p) => (
                   <button
@@ -151,6 +160,7 @@ export function ReportForm({ onClose, onSuccess }: ReportFormProps) {
                 ))}
               </div>
             </div>
+            )}
 
             <p className="text-xs text-ink-secondary">
               📷 Fotos, videos y audio estarán disponibles próximamente.
@@ -164,7 +174,6 @@ export function ReportForm({ onClose, onSuccess }: ReportFormProps) {
           </div>
         )}
 
-        {/* Navegación */}
         <div className="flex gap-3 pt-2">
           {step > 1 && (
             <button

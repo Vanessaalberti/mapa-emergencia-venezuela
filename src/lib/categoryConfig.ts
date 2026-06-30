@@ -4,22 +4,9 @@ import { COLORS, STATUS_COLOR, PRIORITY_COLOR } from './theme'
 interface CategoryConfig {
   label: string
   emoji: string
-  color: string // color hex usado en marcador y badges — significado funcional, no decorativo
+  color: string 
 }
 
-/**
- * Color por categoría, siguiendo el sistema visual funcional:
- * - Rojo (#DC2626): exclusivo para emergencias críticas reales
- * - Naranja (#EA580C / #F97316): heridos, alimentos, prioridad alta
- * - Amarillo (#FACC15 / #EAB308): advertencia, zonas peligrosas, electricidad
- * - Azul (#2563EB): información oficial, institucional, hospitales
- * - Verde (#16A34A): éxito, refugios operativos, voluntariado
- * - Celeste (#06B6D4): conectividad (Starlink, internet) — diferenciado del azul institucional
- * - Violeta (#7C3AED): donaciones, centros de acopio
- * - Café (#92400E): edificios colapsados
- * - Gris pizarra (#334155): calles bloqueadas
- * - Celeste agua (#0EA5E9): agua potable
- */
 export const CATEGORY_CONFIG: Record<ReportCategory, CategoryConfig> = {
   personas_atrapadas: { label: 'Personas atrapadas', emoji: '🆘', color: COLORS.critical },
   heridos: { label: 'Heridos', emoji: '🚑', color: '#EA580C' },
@@ -75,11 +62,45 @@ export const PRIORITY_CONFIG: Record<ReportPriority, { label: string; color: str
   baja: { label: 'Baja', color: PRIORITY_COLOR.baja },
 }
 
-/**
- * Categorías consideradas de urgencia inmediata. El heatmap muestra
- * densidad únicamente de estas categorías, para no diluir la señal
- * con reportes de baja urgencia (ej: centros de donación, voluntarios).
- */
+export const CATEGORY_PRIORITY: Record<ReportCategory, ReportPriority> = {
+  personas_atrapadas: 'critica',
+  heridos: 'critica',
+  incendios: 'critica',
+  edificios_colapsados: 'critica',
+  inundaciones: 'critica',
+
+  solicitud_ayuda: 'alta',
+  zonas_peligrosas: 'alta',
+  bomberos: 'alta',
+  policia: 'alta',
+  proteccion_civil: 'alta',
+  equipos_rescate: 'alta',
+
+  hospitales: 'media',
+  refugios: 'media',
+  calles_bloqueadas: 'media',
+  electricidad: 'media',
+  internet: 'media',
+  starlink: 'media',
+  helipuertos: 'media',
+  centros_donacion: 'media',
+  voluntarios: 'media',
+
+  alimentos: 'baja',
+  agua: 'baja',
+  medicamentos: 'baja',
+  animales_rescatados: 'baja',
+
+  
+  otros: 'media',
+}
+
+export function getPriorityByCategory(
+  category: ReportCategory
+): ReportPriority {
+  return CATEGORY_PRIORITY[category]
+}
+
 export const URGENT_HEATMAP_CATEGORIES: ReportCategory[] = [
   'personas_atrapadas',
   'heridos',
