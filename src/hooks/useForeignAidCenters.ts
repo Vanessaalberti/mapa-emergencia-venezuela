@@ -16,9 +16,6 @@ export function useForeignAidCenters(): UseForeignAidCentersResult {
   const [centers, setCenters] = useState<ForeignAidCenter[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // Id único por instancia del hook, para que el canal de Realtime de cada
-  // componente que lo use sea independiente — evita que dos instancias del
-  // hook (ej: la página y un modal hijo) se pisen entre sí al desmontarse.
   const instanceId = useRef(Math.random().toString(36).slice(2)).current
 
   const fetchCenters = useCallback(async () => {
@@ -52,10 +49,6 @@ export function useForeignAidCenters(): UseForeignAidCentersResult {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'foreign_aid_centers' },
         () => {
-          // Para esta sección, que se actualiza con poca frecuencia y no
-          // tiene tanta urgencia de milisegundos como el mapa de emergencia,
-          // un refetch simple ante cualquier cambio es más simple y confiable
-          // que reconciliar manualmente insert/update/delete.
           fetchCenters()
         }
       )

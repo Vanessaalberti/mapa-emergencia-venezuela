@@ -31,11 +31,10 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
 
   if (!session) {
     return (
-      <Modal title="Publicación próximamente disponible" onClose={onClose}>
+      <Modal title="Inicia sesion" onClose={onClose}>
         <p className="text-sm text-ink-secondary">
-          Para publicar un centro de acopio o canal de donación vamos a requerir una cuenta, para
-          mantener la información trazable y confiable. Esta función todavía no está habilitada
-          en la app — la vamos a activar pronto junto con el sistema de cuentas.
+          Para publicar un centro de acopio o canal de donación se requiere iniciar sesion, para
+          mantener la información trazable y confiable.
         </p>
       </Modal>
     )
@@ -77,7 +76,7 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
+            <label className="text-sm font-medium block mb-1 text-ink-primary">
               País *
             </label>
             <input
@@ -85,11 +84,11 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               placeholder="España"
-              className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+              className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
             />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
+            <label className="text-sm font-medium block mb-1 text-ink-primary">
               Ciudad *
             </label>
             <input
@@ -97,13 +96,13 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
               value={city}
               onChange={(e) => setCity(e.target.value)}
               placeholder="Madrid"
-              className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+              className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
             />
           </div>
         </div>
 
         <div>
-          <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
+          <label className="text-sm font-medium block mb-1 text-ink-primary">
             Título *
           </label>
           <input
@@ -111,12 +110,12 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ej: Centro de acopio Comunidad Venezolana de Madrid"
-            className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+            className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
           />
         </div>
 
         <div>
-          <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
+          <label className="text-sm font-medium block mb-1 text-ink-primary">
             Descripción
           </label>
           <textarea
@@ -124,26 +123,26 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
             onChange={(e) => setDescription(e.target.value)}
             placeholder="¿Qué tipo de ayuda se está organizando?"
             rows={2}
-            className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+            className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
           />
         </div>
 
         <div>
-          <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
-            Dirección
+          <label className="text-sm font-medium block mb-1 text-ink-primary">
+            Dirección *
           </label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Calle, número, ciudad"
-            className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+            className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
+            <label className="text-sm font-medium block mb-1 text-ink-primary">
               Horario
             </label>
             <input
