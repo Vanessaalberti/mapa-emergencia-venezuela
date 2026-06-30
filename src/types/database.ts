@@ -2,8 +2,6 @@ import type { Database as GeneratedDatabase } from './database.types'
 
 export type { Database } from './database.types'
 
-// ── Tipos de dominio ─────────────────────────────────────────────────────────
-
 export type UserRole =
   | 'visitante'
   | 'usuario'
@@ -48,12 +46,6 @@ export type ReportCategory =
   | 'zonas_peligrosas'
   | 'solicitud_ayuda'
   | 'otros'
-
-// ── Tipos derivados de la DB generada ────────────────────────────────────────
-// El archivo generado usa `string` para columnas text de Postgres.
-// Acá sobreescribimos esos campos con nuestros union types específicos
-// para que el resto del código (CATEGORY_CONFIG, STATUS_CONFIG, etc.)
-// reciba tipos correctos sin tener que hacer casts en cada componente.
 
 type RawReport = GeneratedDatabase['public']['Tables']['reports']['Row']
 type RawReportInsert = GeneratedDatabase['public']['Tables']['reports']['Insert']

@@ -1,17 +1,12 @@
 import { Link } from 'react-router-dom'
-import { UserMenuButton } from './UserMenuButton'
 
 interface TopBarProps {
   onOpenReportForm: () => void
   onOpenLayersPanel: () => void
-  onOpenAuth: () => void
-  onOpenProfile: () => void
 }
 
 export function TopBar({
   onOpenReportForm,
-  onOpenAuth,
-  onOpenProfile,
 }: TopBarProps) {
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-2 bg-bg-primary border-b border-border z-[1500] relative">
@@ -38,8 +33,6 @@ export function TopBar({
           <span>📝</span>
           <span className="hidden sm:inline">Reportar</span>
         </button>
-
-        <UserMenuButton onOpenAuth={onOpenAuth} onOpenProfile={onOpenProfile} />
       </div>
     </div>
   )

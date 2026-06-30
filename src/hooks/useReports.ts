@@ -9,11 +9,6 @@ interface UseReportsResult {
   refetch: () => void
 }
 
-/**
- * Trae todos los reportes activos (no archivados) y se mantiene sincronizado
- * en tiempo real: cualquier insert/update/delete en la tabla `reports` se
- * refleja automáticamente sin recargar la página.
- */
 export function useReports(): UseReportsResult {
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)

@@ -63,8 +63,6 @@ export function HomePage() {
       <TopBar
         onOpenReportForm={() => setActiveModal('report')}
         onOpenLayersPanel={() => setActiveModal('layers')}
-        onOpenAuth={() => setActiveModal('auth')}
-        onOpenProfile={() => setActiveModal('profile')}
       />
       <div className="sticky top-[50px] h-[55vh] relative z-10">
         <MapView
