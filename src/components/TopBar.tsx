@@ -9,26 +9,33 @@ interface TopBarProps {
 export function TopBar({ onOpenReportForm }: TopBarProps) {
   return (
     <div className="
+      relative
       flex items-center justify-between
 
-      px-4 py-3
+      px-4 py-2.5
 
-      bg-[#F9FAFB]
+      bg-[#FAFAFA]
       border-b border-neutral-200
 
       z-[1500]
-      relative
     ">
+
       {/* LEFT - identidad */}
       <div className="flex items-center gap-3 min-w-0">
+
         <div className="
           w-9 h-9
           flex items-center justify-center
-          rounded-md
+
+          rounded-[10px]
+
           bg-[#0B3A6E]
           text-white
-          font-bold
-          text-sm
+
+          font-black text-[13px]
+          tracking-wide
+
+          shadow-sm
         ">
           VE
         </div>
@@ -41,6 +48,7 @@ export function TopBar({ onOpenReportForm }: TopBarProps) {
             Venezuela · información ciudadana en tiempo real
           </span>
         </div>
+
       </div>
 
       {/* RIGHT - acciones */}
@@ -54,19 +62,18 @@ export function TopBar({ onOpenReportForm }: TopBarProps) {
             px-3 py-2
 
             text-sm font-medium
-
-            border border-neutral-200
-            bg-white
+            text-neutral-600
 
             rounded-md
 
-            hover:bg-neutral-50
+            hover:bg-neutral-100
+            active:scale-[0.98]
 
             transition
           "
         >
-          <Globe size={16} className="text-neutral-600" />
-          <span className="hidden sm:inline text-neutral-700">
+          <Globe size={16} className="text-neutral-500" />
+          <span className="hidden sm:inline">
             Apoyo internacional
           </span>
         </Link>
@@ -77,16 +84,20 @@ export function TopBar({ onOpenReportForm }: TopBarProps) {
           className="
             flex items-center gap-2
 
-            px-3 py-2
+            px-4 py-2
 
-            text-sm font-semibold
+            text-sm font-bold
 
             bg-[#C62828]
             text-white
 
             rounded-md
 
+            shadow-sm
+            border border-red-700/20
+
             hover:bg-[#B71C1C]
+            active:scale-[0.98]
 
             transition
           "
@@ -98,6 +109,14 @@ export function TopBar({ onOpenReportForm }: TopBarProps) {
         </button>
 
       </div>
+
+      {/* 🇻🇪 FRANJA TRICOLOR SUTIL */}
+      <div className="absolute bottom-0 left-0 w-full h-[2px] flex">
+        <div className="flex-1 bg-[#F4D03F]" />
+        <div className="flex-1 bg-[#1F4E79]" />
+        <div className="flex-1 bg-[#C62828]" />
+      </div>
+
     </div>
   )
 }
