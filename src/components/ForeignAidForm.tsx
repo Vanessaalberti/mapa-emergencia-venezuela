@@ -11,9 +11,12 @@ interface ForeignAidFormProps {
   ) => Promise<{ success: boolean; error: string | null }>
 }
 
-export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidFormProps) {
+export function ForeignAidForm({
+  onClose,
+  onSuccess,
+  createCenter,
+}: ForeignAidFormProps) {
   const { session } = useAuthContext()
-
 
   const [country, setCountry] = useState('')
   const [city, setCity] = useState('')
@@ -22,8 +25,6 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
   const [address, setAddress] = useState('')
   const [schedule, setSchedule] = useState('')
   const [collectionDates, setCollectionDates] = useState('')
-  const [acceptsPhysical, setAcceptsPhysical] = useState(true)
-  const [acceptsMonetary, setAcceptsMonetary] = useState(false)
   const [donationLink, setDonationLink] = useState('')
   const [contactInfo, setContactInfo] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -31,19 +32,20 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
 
   if (!session) {
     return (
-      <Modal title="Inicia sesion" onClose={onClose}>
+      <Modal title="Iniciar sesión" onClose={onClose}>
         <p className="text-sm text-ink-secondary">
-          Para publicar un centro de acopio o canal de donación se requiere iniciar sesion, para
-          mantener la información trazable y confiable.
+          Necesitas iniciar sesión para publicar un centro de ayuda.
         </p>
       </Modal>
     )
   }
 
-  const canSubmit = country.trim() && city.trim() && title.trim()
+  const canSubmit =
+    country.trim() && city.trim() && title.trim() && address.trim()
 
   const handleSubmit = async () => {
     if (!canSubmit) return
+
     setSubmitting(true)
     setError(null)
 
@@ -55,8 +57,6 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
       address: address.trim() || null,
       schedule: schedule.trim() || null,
       collection_dates: collectionDates.trim() || null,
-      accepts_physical_donations: acceptsPhysical,
-      accepts_monetary_donations: acceptsMonetary,
       donation_link: donationLink.trim() || null,
       contact_info: contactInfo.trim() || null,
       created_by: session.user.id,
@@ -64,170 +64,156 @@ export function ForeignAidForm({ onClose, onSuccess, createCenter }: ForeignAidF
 
     setSubmitting(false)
 
-    if (success) {
-      onSuccess()
-    } else {
-      setError(submitError ?? 'No se pudo publicar. Intenta de nuevo.')
-    }
+    if (success) onSuccess()
+    else setError(submitError ?? 'No se pudo publicar. Intenta de nuevo.')
   }
+
+  const Input = (props: any) => (
+    <input
+      {...props}
+      className="w-full p-3 text-sm rounded-lg border border-border bg-white text-ink-primary focus:outline-none focus:ring-2 focus:ring-info/30"
+    />
+  )
+
+  const Textarea = (props: any) => (
+    <textarea
+      {...props}
+      className="w-full p-3 text-sm rounded-lg border border-border bg-white text-ink-primary focus:outline-none focus:ring-2 focus:ring-info/30 resize-none"
+    />
+  )
 
   return (
     <Modal title="Publicar centro de ayuda" onClose={onClose}>
-      <div className="space-y-4">
+      <div className="space-y-5">
+
+        {/* país / ciudad */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm font-medium block mb-1 text-ink-primary">
+            <label className="text-xs font-semibold text-ink-primary">
               País *
             </label>
-            <input
-              type="text"
+            <Input
               value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="España"
-              className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
+              onChange={(e: any) => setCountry(e.target.value)}
+              placeholder="Ej: España, Argentina, Colombia"
             />
           </div>
+
           <div>
-            <label className="text-sm font-medium block mb-1 text-ink-primary">
+            <label className="text-xs font-semibold text-ink-primary">
               Ciudad *
             </label>
-            <input
-              type="text"
+            <Input
               value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Madrid"
-              className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
+              onChange={(e: any) => setCity(e.target.value)}
+              placeholder="Ej: Madrid, Buenos Aires"
             />
           </div>
         </div>
 
+        {/* título */}
         <div>
-          <label className="text-sm font-medium block mb-1 text-ink-primary">
-            Título *
+          <label className="text-xs font-semibold text-ink-primary">
+            Nombre del centro *
           </label>
-          <input
-            type="text"
+          <Input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ej: Centro de acopio Comunidad Venezolana de Madrid"
-            className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
+            onChange={(e: any) => setTitle(e.target.value)}
+            placeholder="Ej: Centro de acopio Comunidad Venezolana"
           />
         </div>
 
+        {/* descripción */}
         <div>
-          <label className="text-sm font-medium block mb-1 text-ink-primary">
+          <label className="text-xs font-semibold text-ink-primary">
             Descripción
           </label>
-          <textarea
+          <Textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="¿Qué tipo de ayuda se está organizando?"
-            rows={2}
-            className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
+            onChange={(e: any) => setDescription(e.target.value)}
+            placeholder="Ej: Estamos recolectando alimentos, medicinas y ropa para envío a Venezuela"
+            rows={3}
           />
         </div>
 
+        {/* dirección */}
         <div>
-          <label className="text-sm font-medium block mb-1 text-ink-primary">
+          <label className="text-xs font-semibold text-ink-primary">
             Dirección *
           </label>
-          <input
-            type="text"
+          <Input
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Calle, número, ciudad"
-            className="w-full p-3 text-base rounded-lg border border-border text-ink-primary"
+            onChange={(e: any) => setAddress(e.target.value)}
+            placeholder="Ej: Av. Principal 123, Barrio Centro"
           />
         </div>
 
+        {/* detalles */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm font-medium block mb-1 text-ink-primary">
+            <label className="text-xs font-semibold text-ink-primary">
               Horario
             </label>
-            <input
-              type="text"
+            <Input
               value={schedule}
-              onChange={(e) => setSchedule(e.target.value)}
-              placeholder="Lun a vie, 9am-6pm"
-              className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+              onChange={(e: any) => setSchedule(e.target.value)}
+              placeholder="Ej: Lunes a viernes 9:00 - 18:00"
             />
           </div>
+
           <div>
-            <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
-              Fechas de jornada
+            <label className="text-xs font-semibold text-ink-primary">
+              Fechas
             </label>
-            <input
-              type="text"
+            <Input
               value={collectionDates}
-              onChange={(e) => setCollectionDates(e.target.value)}
-              placeholder="15 y 16 de julio"
-              className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+              onChange={(e: any) => setCollectionDates(e.target.value)}
+              placeholder="Ej: 15 al 20 de julio"
             />
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 text-sm text-ink-primary dark:text-neutral-100">
-            <input
-              type="checkbox"
-              checked={acceptsPhysical}
-              onChange={(e) => setAcceptsPhysical(e.target.checked)}
-              className="h-4 w-4"
-            />
-            Recibe donaciones físicas
-          </label>
-          <label className="flex items-center gap-2 text-sm text-ink-primary dark:text-neutral-100">
-            <input
-              type="checkbox"
-              checked={acceptsMonetary}
-              onChange={(e) => setAcceptsMonetary(e.target.checked)}
-              className="h-4 w-4"
-            />
-            Recibe donaciones monetarias
-          </label>
-        </div>
-
-        {acceptsMonetary && (
-          <div>
-            <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
-              Canal oficial de donación (link)
-            </label>
-            <input
-              type="text"
-              value={donationLink}
-              onChange={(e) => setDonationLink(e.target.value)}
-              placeholder="https://..."
-              className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
-            />
-          </div>
-        )}
-
+        {/* contacto */}
         <div>
-          <label className="text-sm font-medium block mb-1 text-ink-primary dark:text-neutral-100">
+          <label className="text-xs font-semibold text-ink-primary">
             Contacto
           </label>
-          <input
-            type="text"
+          <Input
             value={contactInfo}
-            onChange={(e) => setContactInfo(e.target.value)}
-            placeholder="Teléfono, email o red social"
-            className="w-full p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+            onChange={(e: any) => setContactInfo(e.target.value)}
+            placeholder="Ej: +34 600 000 000 / Instagram @ayuda.ve"
           />
         </div>
 
+        {/* link */}
+        <div>
+          <label className="text-xs font-semibold text-ink-primary">
+            Link externo (opcional)
+          </label>
+          <Input
+            value={donationLink}
+            onChange={(e: any) => setDonationLink(e.target.value)}
+            placeholder="Ej: https://instagram.com/organizacion"
+          />
+        </div>
+
+        {/* error */}
         {error && (
-          <p className="text-sm text-critical bg-critical/10 p-3 rounded-lg">{error}</p>
+          <div className="p-3 rounded-lg text-sm bg-critical/10 text-critical">
+            {error}
+          </div>
         )}
 
+        {/* submit */}
         <button
           type="button"
           disabled={!canSubmit || submitting}
           onClick={handleSubmit}
           className="w-full py-3 rounded-xl font-bold text-white bg-info disabled:opacity-40"
         >
-          {submitting ? 'Publicando...' : 'Publicar'}
+          {submitting ? 'Publicando...' : 'Publicar centro'}
         </button>
+
       </div>
     </Modal>
   )

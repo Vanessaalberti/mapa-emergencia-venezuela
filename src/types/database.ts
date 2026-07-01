@@ -78,8 +78,6 @@ export interface ForeignAidCenter {
   address: string | null
   schedule: string | null
   collection_dates: string | null
-  accepts_physical_donations: boolean
-  accepts_monetary_donations: boolean
   donation_link: string | null
   contact_info: string | null
   verified: boolean

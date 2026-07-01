@@ -229,20 +229,6 @@ function CenterCard({ center }: { center: ForeignAidCenter }) {
         {center.contact_info && <p>📞 {center.contact_info}</p>}
       </div>
 
-      <div className="flex flex-wrap gap-2 text-[11px]">
-        {center.accepts_physical_donations && (
-          <span className="px-2 py-1 rounded-full bg-donation/10 text-donation">
-            📦 Físicas
-          </span>
-        )}
-
-        {center.accepts_monetary_donations && (
-          <span className="px-2 py-1 rounded-full bg-success/10 text-success">
-            💰 Monetarias
-          </span>
-        )}
-      </div>
-
       {center.donation_link && (
         <a
           href={center.donation_link}
