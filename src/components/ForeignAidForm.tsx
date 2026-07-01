@@ -68,34 +68,27 @@ export function ForeignAidForm({
     else setError(submitError ?? 'No se pudo publicar. Intenta de nuevo.')
   }
 
-  const Input = (props: any) => (
-    <input
-      {...props}
-      className="w-full p-3 text-sm rounded-lg border border-border bg-white text-ink-primary focus:outline-none focus:ring-2 focus:ring-info/30"
-    />
-  )
+  const inputClass =
+    'w-full p-3 text-sm rounded-lg border border-border bg-white text-ink-primary focus:outline-none focus:ring-2 focus:ring-info/30'
 
-  const Textarea = (props: any) => (
-    <textarea
-      {...props}
-      className="w-full p-3 text-sm rounded-lg border border-border bg-white text-ink-primary focus:outline-none focus:ring-2 focus:ring-info/30 resize-none"
-    />
-  )
+  const textareaClass =
+    inputClass + ' resize-none'
 
   return (
     <Modal title="Publicar centro de ayuda" onClose={onClose}>
       <div className="space-y-5">
 
-        {/* país / ciudad */}
+        {/* País / Ciudad */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-semibold text-ink-primary">
               País *
             </label>
-            <Input
+            <input
               value={country}
-              onChange={(e: any) => setCountry(e.target.value)}
-              placeholder="Ej: España, Argentina, Colombia"
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="Ej: España / Argentina / Colombia"
+              className={inputClass}
             />
           </div>
 
@@ -103,61 +96,66 @@ export function ForeignAidForm({
             <label className="text-xs font-semibold text-ink-primary">
               Ciudad *
             </label>
-            <Input
+            <input
               value={city}
-              onChange={(e: any) => setCity(e.target.value)}
-              placeholder="Ej: Madrid, Buenos Aires"
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="Ej: Madrid / Buenos Aires"
+              className={inputClass}
             />
           </div>
         </div>
 
-        {/* título */}
+        {/* Título */}
         <div>
           <label className="text-xs font-semibold text-ink-primary">
             Nombre del centro *
           </label>
-          <Input
+          <input
             value={title}
-            onChange={(e: any) => setTitle(e.target.value)}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="Ej: Centro de acopio Comunidad Venezolana"
+            className={inputClass}
           />
         </div>
 
-        {/* descripción */}
+        {/* Descripción */}
         <div>
           <label className="text-xs font-semibold text-ink-primary">
             Descripción
           </label>
-          <Textarea
+          <textarea
             value={description}
-            onChange={(e: any) => setDescription(e.target.value)}
-            placeholder="Ej: Estamos recolectando alimentos, medicinas y ropa para envío a Venezuela"
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Ej: Recolectamos alimentos, medicinas y ropa para envío humanitario"
             rows={3}
+            className={textareaClass}
           />
         </div>
 
-        {/* dirección */}
+        {/* Dirección */}
         <div>
           <label className="text-xs font-semibold text-ink-primary">
             Dirección *
           </label>
-          <Input
+          <input
             value={address}
-            onChange={(e: any) => setAddress(e.target.value)}
+            onChange={(e) => setAddress(e.target.value)}
             placeholder="Ej: Av. Principal 123, Barrio Centro"
+            className={inputClass}
           />
         </div>
 
-        {/* detalles */}
+        {/* Detalles */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-semibold text-ink-primary">
               Horario
             </label>
-            <Input
+            <input
               value={schedule}
-              onChange={(e: any) => setSchedule(e.target.value)}
-              placeholder="Ej: Lunes a viernes 9:00 - 18:00"
+              onChange={(e) => setSchedule(e.target.value)}
+              placeholder="Ej: Lun a Vie 9:00 - 18:00"
+              className={inputClass}
             />
           </div>
 
@@ -165,46 +163,49 @@ export function ForeignAidForm({
             <label className="text-xs font-semibold text-ink-primary">
               Fechas
             </label>
-            <Input
+            <input
               value={collectionDates}
-              onChange={(e: any) => setCollectionDates(e.target.value)}
+              onChange={(e) => setCollectionDates(e.target.value)}
               placeholder="Ej: 15 al 20 de julio"
+              className={inputClass}
             />
           </div>
         </div>
 
-        {/* contacto */}
+        {/* Contacto */}
         <div>
           <label className="text-xs font-semibold text-ink-primary">
             Contacto
           </label>
-          <Input
+          <input
             value={contactInfo}
-            onChange={(e: any) => setContactInfo(e.target.value)}
-            placeholder="Ej: +34 600 000 000 / Instagram @ayuda.ve"
+            onChange={(e) => setContactInfo(e.target.value)}
+            placeholder="Ej: WhatsApp +34 600 000 000 / Instagram @ayuda"
+            className={inputClass}
           />
         </div>
 
-        {/* link */}
+        {/* Link */}
         <div>
           <label className="text-xs font-semibold text-ink-primary">
             Link externo (opcional)
           </label>
-          <Input
+          <input
             value={donationLink}
-            onChange={(e: any) => setDonationLink(e.target.value)}
+            onChange={(e) => setDonationLink(e.target.value)}
             placeholder="Ej: https://instagram.com/organizacion"
+            className={inputClass}
           />
         </div>
 
-        {/* error */}
+        {/* Error */}
         {error && (
           <div className="p-3 rounded-lg text-sm bg-critical/10 text-critical">
             {error}
           </div>
         )}
 
-        {/* submit */}
+        {/* Submit */}
         <button
           type="button"
           disabled={!canSubmit || submitting}
