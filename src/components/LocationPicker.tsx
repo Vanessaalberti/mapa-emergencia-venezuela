@@ -2,6 +2,13 @@ import { useState, useRef, useEffect } from 'react'
 import L from 'leaflet'
 import { useGeolocation } from '../hooks/useGeolocation'
 
+import {
+  Navigation,
+  Search,
+  Map,
+  Hash,
+} from 'lucide-react'
+
 export interface SelectedLocation {
   latitude: number
   longitude: number
@@ -15,20 +22,26 @@ interface LocationPickerProps {
 
 type LocationMethod = 'gps' | 'search' | 'map' | 'coords'
 
-// Nominatim (OpenStreetMap) puede no encontrar direcciones exactas tipo
-// "Calle X, casa 12" en zonas con poco mapeo detallado (común en barrios
-// populares de Venezuela). Para mejorar la tasa de aciertos:
-// - Forzamos el sesgo geográfico a Venezuela (viewbox + countrycodes)
-// - Pedimos resultados "addressdetails" para depurar mejor
-// - Si la búsqueda exacta no devuelve nada, reintentamos quitando el
-//   último segmento (ej: número de casa) para encontrar al menos la calle/zona
-async function searchAddress(query: string): Promise<Array<{ label: string; lat: number; lng: number }>> {
-  const baseParams = 'format=json&limit=6&countrycodes=ve&addressdetails=1'
+/* ---------------------------
+   API HELPERS
+--------------------------- */
+
+async function searchAddress(query: string) {
+  const baseParams =
+    'format=json&limit=6&countrycodes=ve&addressdetails=1'
 
   const fetchResults = async (q: string) => {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&${baseParams}`
-    const response = await fetch(url, { headers: { 'Accept-Language': 'es' } })
-    const data: Array<{ display_name: string; lat: string; lon: string }> = await response.json()
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+      q
+    )}&${baseParams}`
+
+    const response = await fetch(url, {
+      headers: { 'Accept-Language': 'es' },
+    })
+
+    const data: Array<{ display_name: string; lat: string; lon: string }> =
+      await response.json()
+
     return data.map((item) => ({
       label: item.display_name,
       lat: parseFloat(item.lat),
@@ -39,22 +52,22 @@ async function searchAddress(query: string): Promise<Array<{ label: string; lat:
   const results = await fetchResults(query)
   if (results.length > 0) return results
 
-  // Reintento: si el query tiene varias partes separadas por coma
-  // (ej: "Calle 5, Casa 12, Barrio X"), probamos sin el primer segmento
-  // específico, que suele ser lo que menos está mapeado.
   const parts = query.split(',').map((p) => p.trim()).filter(Boolean)
   if (parts.length > 1) {
-    const broaderQuery = parts.slice(1).join(', ')
-    return fetchResults(broaderQuery)
+    return fetchResults(parts.slice(1).join(', '))
   }
 
   return []
 }
 
-async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+async function reverseGeocode(lat: number, lng: number) {
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
-    const response = await fetch(url, { headers: { 'Accept-Language': 'es' } })
+
+    const response = await fetch(url, {
+      headers: { 'Accept-Language': 'es' },
+    })
+
     const data: { display_name?: string } = await response.json()
     return data.display_name ?? null
   } catch {
@@ -62,20 +75,24 @@ async function reverseGeocode(lat: number, lng: number): Promise<string | null> 
   }
 }
 
+/* ---------------------------
+   COMPONENT
+--------------------------- */
+
 export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const [method, setMethod] = useState<LocationMethod | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<Array<{ label: string; lat: number; lng: number }>>([])
+  const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
-  const [searchedOnce, setSearchedOnce] = useState(false)
+  //const [searchedOnce, setSearchedOnce] = useState(false)
   const [manualLat, setManualLat] = useState('')
   const [manualLng, setManualLng] = useState('')
-  const { getCurrentLocation, loading: gpsLoading, error: gpsError } = useGeolocation()
+
+  const { getCurrentLocation, loading: gpsLoading, error: gpsError } =
+    useGeolocation()
 
   useEffect(() => {
-    if (value !== null && method === null) {
-      setMethod('gps')
-    }
+    if (value && !method) setMethod('gps')
   }, [value, method])
 
   const handleUseGps = async () => {
@@ -83,16 +100,21 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     try {
       const coords = await getCurrentLocation()
       const address = await reverseGeocode(coords.latitude, coords.longitude)
-      onChange({ latitude: coords.latitude, longitude: coords.longitude, address })
-    } catch {
-      // El error ya queda reflejado en gpsError
-    }
+
+      onChange({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        address,
+      })
+    } catch {}
   }
 
   const handleSearch = async () => {
     if (searchQuery.trim().length < 3) return
+
     setSearching(true)
-    setSearchedOnce(true)
+    //setSearchedOnce(true)
+
     try {
       const results = await searchAddress(searchQuery)
       setSearchResults(results)
@@ -101,140 +123,168 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     }
   }
 
-  const handleSelectSearchResult = (result: { label: string; lat: number; lng: number }) => {
-    onChange({ latitude: result.lat, longitude: result.lng, address: result.label })
+  const handleSelectSearchResult = (r: any) => {
+    onChange({
+      latitude: r.lat,
+      longitude: r.lng,
+      address: r.label,
+    })
+
     setSearchResults([])
-    setSearchQuery(result.label)
+    setSearchQuery(r.label)
   }
 
   const handleManualCoords = async () => {
     const lat = parseFloat(manualLat)
     const lng = parseFloat(manualLng)
+
     if (isNaN(lat) || isNaN(lng)) return
+
     const address = await reverseGeocode(lat, lng)
-    onChange({ latitude: lat, longitude: lng, address })
+
+    onChange({
+      latitude: lat,
+      longitude: lng,
+      address,
+    })
   }
+
+  /* ---------------------------
+     OPTION CARD (FIX UX)
+  --------------------------- */
+
+  const OptionCard = ({
+    active,
+    icon: Icon,
+    title,
+    description,
+    onClick,
+  }: any) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        flex items-center gap-3
+
+        p-4
+        border
+        rounded-md
+
+        transition
+
+        text-left
+
+        ${active
+          ? 'border-[#0B3A6E] bg-blue-50'
+          : 'border-neutral-200 bg-white'}
+      `}
+    >
+      {/* ICON */}
+      <div className="flex-shrink-0">
+        <Icon
+          size={22}
+          className={active ? 'text-[#0B3A6E]' : 'text-neutral-600'}
+        />
+      </div>
+
+      {/* TEXT */}
+      <div className="flex flex-col">
+        <span className="text-sm font-semibold text-neutral-900">
+          {title}
+        </span>
+        <span className="text-xs text-neutral-500 leading-tight">
+          {description}
+        </span>
+      </div>
+    </button>
+  )
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-ink-secondary">
-        Elige cómo quieres indicar la ubicación:
+
+      <p className="text-sm text-neutral-600">
+        Selecciona cómo definir la ubicación del incidente:
       </p>
 
+      {/* OPTIONS */}
       <div className="grid grid-cols-2 gap-3">
-        <button
-          type="button"
+
+        <OptionCard
+          active={method === 'gps'}
+          icon={Navigation}
+          title="Usar GPS"
+          description="Detecta tu ubicación automáticamente"
           onClick={handleUseGps}
-          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${
-            method === 'gps'
-              ? 'border-info bg-info/10 dark:bg-info/20'
-              : 'border-border dark:border-neutral-700'
-          }`}
-        >
-          <span className="text-2xl">📍</span>
-          <span className="text-sm font-semibold">Usar GPS</span>
-        </button>
+        />
 
-        <button
-          type="button"
+        <OptionCard
+          active={method === 'search'}
+          icon={Search}
+          title="Buscar dirección"
+          description="Calle, barrio o referencia"
           onClick={() => setMethod('search')}
-          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${
-            method === 'search'
-              ? 'border-info bg-info/10 dark:bg-info/20'
-              : 'border-border dark:border-neutral-700'
-          }`}
-        >
-          <span className="text-2xl">🔍</span>
-          <span className="text-sm font-semibold">Buscar dirección</span>
-        </button>
+        />
 
-        <button
-          type="button"
+        <OptionCard
+          active={method === 'map'}
+          icon={Map}
+          title="Elegir en mapa"
+          description="Selecciona un punto exacto"
           onClick={() => setMethod('map')}
-          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${
-            method === 'map'
-              ? 'border-info bg-info/10 dark:bg-info/20'
-              : 'border-border dark:border-neutral-700'
-          }`}
-        >
-          <span className="text-2xl">🗺️</span>
-          <span className="text-sm font-semibold">Seleccionar en el mapa</span>
-        </button>
+        />
 
-        <button
-          type="button"
+        <OptionCard
+          active={method === 'coords'}
+          icon={Hash}
+          title="Coordenadas"
+          description="Latitud y longitud manual"
           onClick={() => setMethod('coords')}
-          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${
-            method === 'coords'
-              ? 'border-info bg-info/10 dark:bg-info/20'
-              : 'border-border dark:border-neutral-700'
-          }`}
-        >
-          <span className="text-2xl">#️⃣</span>
-          <span className="text-sm font-semibold">Coordenadas</span>
-        </button>
+        />
+
       </div>
 
+      {/* GPS */}
       {method === 'gps' && (
-        <div className="text-sm space-y-1">
-          {gpsLoading && (
-            <p className="text-ink-secondary">
-              Obteniendo tu ubicación... esto puede tardar hasta 30 segundos si la señal es
-              débil. No cierres esta ventana.
-            </p>
-          )}
-          {gpsError && <p className="text-critical">{gpsError}</p>}
+        <div className="text-sm text-neutral-600">
+          {gpsLoading && <p>Obteniendo ubicación…</p>}
+          {gpsError && <p className="text-red-600">{gpsError}</p>}
         </div>
       )}
 
+      {/* SEARCH */}
       {method === 'search' && (
-        <div className="space-y-2">
-          <p className="text-xs text-ink-secondary">
-            Tip: si no encuentra una dirección exacta (ej: número de casa), probá con la calle,
-            el barrio o un punto de referencia cercano (ej: "cerca de la plaza Bolívar, Petare").
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Calle, barrio, ciudad, punto de referencia..."
-              className="flex-1 p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
-            />
+        <div className="space-y-3">
+
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === 'Enter' && handleSearch()
+            }
+            placeholder="Calle, barrio o referencia"
+            className="w-full px-3 py-3 border border-neutral-300 rounded-md text-sm"
+          />
+
+          <button
+            onClick={handleSearch}
+            className="px-4 py-2 bg-[#0B3A6E] text-white rounded-md text-sm"
+          >
+            {searching ? 'Buscando...' : 'Buscar'}
+          </button>
+
+          {searchResults.map((r, i) => (
             <button
-              type="button"
-              onClick={handleSearch}
-              className="px-4 rounded-lg bg-info text-white font-semibold"
+              key={i}
+              onClick={() => handleSelectSearchResult(r)}
+              className="w-full text-left p-2 text-sm border-b hover:bg-neutral-50"
             >
-              {searching ? '...' : 'Buscar'}
+              {r.label}
             </button>
-          </div>
-          {searchResults.length > 0 && (
-            <ul className="border border-border dark:border-neutral-700 rounded-lg divide-y divide-border dark:divide-neutral-700 max-h-48 overflow-y-auto">
-              {searchResults.map((result, idx) => (
-                <li key={idx}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectSearchResult(result)}
-                    className="w-full text-left p-3 text-sm hover:bg-bg-secondary dark:hover:bg-neutral-800"
-                  >
-                    {result.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {searchedOnce && !searching && searchResults.length === 0 && (
-            <p className="text-sm text-warning bg-warning/10 p-3 rounded-lg">
-              No encontramos esa dirección exacta. Probá con un punto de referencia más amplio
-              (calle, barrio, plaza cercana), o usá "Seleccionar en el mapa" para marcar el punto
-              directamente.
-            </p>
-          )}
+          ))}
         </div>
       )}
 
+      {/* MAP (ONLY ONCE - FIXED BUG) */}
       {method === 'map' && (
         <MiniMapPicker
           initialLat={value?.latitude}
@@ -246,44 +296,47 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         />
       )}
 
+      {/* COORDS */}
       {method === 'coords' && (
         <div className="flex gap-2">
           <input
-            type="text"
-            inputMode="decimal"
             value={manualLat}
             onChange={(e) => setManualLat(e.target.value)}
-            placeholder="Latitud (ej: 10.4806)"
-            className="flex-1 p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+            placeholder="Lat"
+            className="flex-1 px-3 py-2 border rounded-md text-sm"
           />
+
           <input
-            type="text"
-            inputMode="decimal"
             value={manualLng}
             onChange={(e) => setManualLng(e.target.value)}
-            placeholder="Longitud (ej: -66.9036)"
-            className="flex-1 p-3 text-base rounded-lg border border-border dark:border-neutral-700 dark:bg-neutral-900 text-ink-primary dark:text-neutral-100"
+            placeholder="Lng"
+            className="flex-1 px-3 py-2 border rounded-md text-sm"
           />
+
           <button
-            type="button"
             onClick={handleManualCoords}
-            className="px-4 rounded-lg bg-info text-white font-semibold"
+            className="px-3 bg-[#0B3A6E] text-white rounded-md text-sm"
           >
             OK
           </button>
         </div>
       )}
 
+      {/* SELECTED */}
       {value && (
-        <div className="p-3 rounded-lg bg-success/10 dark:bg-success/20 border border-success/30 dark:border-success/40 text-sm">
-          ✅ Ubicación seleccionada{value.address ? `: ${value.address}` : ` (${value.latitude.toFixed(4)}, ${value.longitude.toFixed(4)})`}
+        <div className="text-sm p-3 border border-green-200 bg-green-50 rounded-md">
+          Ubicación seleccionada
+          {value.address && `: ${value.address}`}
         </div>
       )}
     </div>
   )
 }
 
-// Mini mapa embebido solo para seleccionar un punto con un clic
+/* =========================
+   MINI MAP
+========================= */
+
 function MiniMapPicker({
   initialLat,
   initialLng,
@@ -293,30 +346,27 @@ function MiniMapPicker({
   initialLng?: number
   onSelect: (lat: number, lng: number) => void
 }) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
+  const ref = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return
+    if (!ref.current || mapRef.current) return
 
-    const map = L.map(containerRef.current, {
-      center: [initialLat ?? 8.0, initialLng ?? -66.0],
+    const map = L.map(ref.current, {
+      center: [initialLat ?? 8, initialLng ?? -66],
       zoom: initialLat ? 14 : 6,
     })
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors',
+      attribution: '© OpenStreetMap',
     }).addTo(map)
 
     let marker: L.Marker | null = null
 
-    map.on('click', (e: L.LeafletMouseEvent) => {
-      if (marker) {
-        marker.setLatLng(e.latlng)
-      } else {
-        marker = L.marker(e.latlng).addTo(map)
-      }
+    map.on('click', (e) => {
+      if (marker) marker.setLatLng(e.latlng)
+      else marker = L.marker(e.latlng).addTo(map)
+
       onSelect(e.latlng.lat, e.latlng.lng)
     })
 
@@ -330,8 +380,8 @@ function MiniMapPicker({
 
   return (
     <div
-      ref={containerRef}
-      className="h-56 w-full rounded-lg overflow-hidden border border-border dark:border-neutral-700"
+      ref={ref}
+      className="h-56 w-full border rounded-md overflow-hidden"
     />
   )
 }
