@@ -15,6 +15,7 @@ import { useReports } from '../hooks/useReports'
 import { useLayers } from '../hooks/useLayers'
 import { Footer } from '../components/Footer'
 import { usePaginatedReports } from '../hooks/usePaginatedReports'
+import { SlidersHorizontal } from 'lucide-react'
 
 type ActiveModal = 'report' | 'needHelp' | 'layers' | 'auth' | 'profile' | 'admin' | null
 
@@ -42,8 +43,6 @@ export function HomePage() {
     ),
   [paginatedReports, visibleCategories]
 )
-
-  // Mismo handler para clic en marcador o en tarjeta del feed: mantiene todo sincronizado
   const handleSelectReport = useCallback((reportId: string) => {
     setSelectedReportId(reportId)
   }, [])
@@ -74,8 +73,10 @@ export function HomePage() {
         />
         <button
           onClick={() => setActiveModal('layers')}
-          className="absolute top-4 right-4 z-[1000] flex items-center gap-2 bg-white border border-border rounded-xl shadow-lg px-4 py-3 hover:shadow-xl transition-all"
-        >⚙️<span className="font-medium">Filtros</span>
+          className="absolute top-4 right-4 z-[1000] flex items-center gap-2 bg-white border border-border rounded-md px-3 py-2 hover:bg-neutral-50 transition"
+        >
+          <SlidersHorizontal size={18} />
+          <span className="font-medium">Filtros</span>
         </button>
         <MapLegend reports={reports} visibleCategories={visibleCategories} />
 
