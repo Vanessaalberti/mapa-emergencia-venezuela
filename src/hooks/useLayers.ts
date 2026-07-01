@@ -18,7 +18,7 @@ export function useLayers(): UseLayersResult {
   const [visibleCategories, setVisibleCategories] = useState<Set<ReportCategory>>(
     () => new Set(ALL_CATEGORIES)
   )
-  const [heatmapEnabled, setHeatmapEnabled] = useState(false)
+  const [heatmapEnabled, setHeatmapEnabled] = useState(true)
 
   const toggleCategory = (category: ReportCategory) => {
     setVisibleCategories((current) => {
