@@ -1,39 +1,177 @@
-import type { ReportCategory, ReportPriority, ReportStatus } from '../types/database'
-import { COLORS, STATUS_COLOR, PRIORITY_COLOR } from './theme'
+import type {
+  ReportCategory,
+  ReportPriority,
+  ReportStatus
+} from '../types/database'
+
+import {
+  COLORS,
+  STATUS_COLOR,
+  PRIORITY_COLOR
+} from './theme'
 
 interface CategoryConfig {
   label: string
   emoji: string
-  color: string 
+  color: string
 }
 
 export const CATEGORY_CONFIG: Record<ReportCategory, CategoryConfig> = {
-  personas_atrapadas: { label: 'Personas atrapadas', emoji: '🆘', color: COLORS.critical },
-  heridos: { label: 'Heridos', emoji: '🚑', color: '#EA580C' },
-  hospitales: { label: 'Hospitales', emoji: '🏥', color: COLORS.info },
-  refugios: { label: 'Refugios', emoji: '🏠', color: COLORS.success },
-  centros_donacion: { label: 'Centros de donación', emoji: '📦', color: COLORS.donation },
-  alimentos: { label: 'Alimentos', emoji: '🍞', color: COLORS.food },
-  agua: { label: 'Agua', emoji: '💧', color: COLORS.water },
-  medicamentos: { label: 'Medicamentos', emoji: '💊', color: COLORS.info },
-  electricidad: { label: 'Electricidad', emoji: '⚡', color: COLORS.electricity },
-  internet: { label: 'Internet', emoji: '📶', color: COLORS.connectivity },
-  starlink: { label: 'Antenas Starlink', emoji: '📡', color: COLORS.connectivity },
-  calles_bloqueadas: { label: 'Calles bloqueadas', emoji: '🚧', color: '#334155' },
-  edificios_colapsados: { label: 'Edificios colapsados', emoji: '🏚️', color: '#92400E' },
-  incendios: { label: 'Incendios', emoji: '🔥', color: COLORS.critical },
-  inundaciones: { label: 'Inundaciones', emoji: '🌊', color: COLORS.water },
-  helipuertos: { label: 'Helipuertos', emoji: '🚁', color: COLORS.info },
-  bomberos: { label: 'Bomberos', emoji: '🚒', color: COLORS.critical },
-  policia: { label: 'Policía', emoji: '🚓', color: COLORS.info },
-  proteccion_civil: { label: 'Protección Civil', emoji: '⛑', color: COLORS.info },
-  equipos_rescate: { label: 'Equipos de rescate', emoji: '👥', color: '#EA580C' },
-  voluntarios: { label: 'Voluntarios', emoji: '🙋', color: COLORS.donation },
-  animales_rescatados: { label: 'Animales rescatados', emoji: '🐶', color: COLORS.success },
-  zonas_peligrosas: { label: 'Zonas peligrosas', emoji: '⚠', color: '#FACC15' },
-  solicitud_ayuda: { label: 'Solicitudes de ayuda', emoji: '📢', color: COLORS.critical },
-  otros: { label: 'Otros', emoji: '📍', color: COLORS.textSecondary },
+
+  personas_atrapadas: {
+    label: 'Atrapados',
+    emoji: '🆘',
+    color: COLORS.critical
+  },
+
+  heridos: {
+    label: 'Heridos',
+    emoji: '🚑',
+    color: '#EA580C'
+  },
+
+  hospitales: {
+    label: 'Hospitales',
+    emoji: '🏥',
+    color: COLORS.info
+  },
+
+  refugios: {
+    label: 'Refugios',
+    emoji: '🏠',
+    color: COLORS.success
+  },
+
+  centros_donacion: {
+    label: 'Donaciones',
+    emoji: '📦',
+    color: COLORS.donation
+  },
+
+  alimentos: {
+    label: 'Alimentos',
+    emoji: '🍞',
+    color: COLORS.food
+  },
+
+  agua: {
+    label: 'Agua',
+    emoji: '💧',
+    color: COLORS.water
+  },
+
+  medicamentos: {
+    label: 'Medicinas',
+    emoji: '💊',
+    color: COLORS.info
+  },
+
+  electricidad: {
+    label: 'Luz',
+    emoji: '⚡',
+    color: COLORS.electricity
+  },
+
+  internet: {
+    label: 'Internet',
+    emoji: '📶',
+    color: COLORS.connectivity
+  },
+
+  starlink: {
+    label: 'Starlink',
+    emoji: '📡',
+    color: COLORS.connectivity
+  },
+
+  calles_bloqueadas: {
+    label: 'Calles bloqueadas',
+    emoji: '🚧',
+    color: '#334155'
+  },
+
+  edificios_colapsados: {
+    label: 'Colapso',
+    emoji: '🏚️',
+    color: '#92400E'
+  },
+
+  incendios: {
+    label: 'Incendio',
+    emoji: '🔥',
+    color: COLORS.critical
+  },
+
+  inundaciones: {
+    label: 'Inundación',
+    emoji: '🌊',
+    color: COLORS.water
+  },
+
+  helipuertos: {
+    label: 'Helipuertos',
+    emoji: '🚁',
+    color: COLORS.info
+  },
+
+  bomberos: {
+    label: 'Bomberos',
+    emoji: '🚒',
+    color: COLORS.critical
+  },
+
+  policia: {
+    label: 'Policía',
+    emoji: '🚓',
+    color: COLORS.info
+  },
+
+  proteccion_civil: {
+    label: 'Protección Civil',
+    emoji: '⛑️',
+    color: COLORS.info
+  },
+
+  equipos_rescate: {
+    label: 'Rescate',
+    emoji: '👥',
+    color: '#EA580C'
+  },
+
+  voluntarios: {
+    label: 'Voluntarios',
+    emoji: '🙋',
+    color: COLORS.donation
+  },
+
+  animales_rescatados: {
+    label: 'Animales',
+    emoji: '🐶',
+    color: COLORS.success
+  },
+
+  zonas_peligrosas: {
+    label: 'Peligro',
+    emoji: '⚠️',
+    color: '#FACC15'
+  },
+
+  solicitud_ayuda: {
+    label: 'Ayuda',
+    emoji: '📢',
+    color: COLORS.critical
+  },
+
+  otros: {
+    label: 'Otros',
+    emoji: '📍',
+    color: COLORS.textSecondary
+  },
 }
+
+/* ---------------------------
+   PRIORITY CONFIG (SIN CAMBIOS FUNCIONALES)
+--------------------------- */
 
 export const STATUS_LABEL: Record<ReportStatus, string> = {
   sin_verificar: 'Sin verificar',
@@ -62,7 +200,12 @@ export const PRIORITY_CONFIG: Record<ReportPriority, { label: string; color: str
   baja: { label: 'Baja', color: PRIORITY_COLOR.baja },
 }
 
+/* ---------------------------
+   CATEGORY PRIORITY MAP
+--------------------------- */
+
 export const CATEGORY_PRIORITY: Record<ReportCategory, ReportPriority> = {
+
   personas_atrapadas: 'critica',
   heridos: 'critica',
   incendios: 'critica',
@@ -72,9 +215,8 @@ export const CATEGORY_PRIORITY: Record<ReportCategory, ReportPriority> = {
   solicitud_ayuda: 'alta',
   zonas_peligrosas: 'alta',
   bomberos: 'alta',
-  policia: 'alta',
-  proteccion_civil: 'alta',
   equipos_rescate: 'alta',
+  animales_rescatados: 'alta',
 
   hospitales: 'media',
   refugios: 'media',
@@ -89,9 +231,9 @@ export const CATEGORY_PRIORITY: Record<ReportCategory, ReportPriority> = {
   alimentos: 'baja',
   agua: 'baja',
   medicamentos: 'baja',
-  animales_rescatados: 'baja',
+  policia: 'baja',
+  proteccion_civil: 'baja',
 
-  
   otros: 'media',
 }
 
@@ -100,6 +242,10 @@ export function getPriorityByCategory(
 ): ReportPriority {
   return CATEGORY_PRIORITY[category]
 }
+
+/* ---------------------------
+   HEATMAP URGENTE
+--------------------------- */
 
 export const URGENT_HEATMAP_CATEGORIES: ReportCategory[] = [
   'personas_atrapadas',
