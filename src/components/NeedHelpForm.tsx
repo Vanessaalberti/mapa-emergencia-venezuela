@@ -11,7 +11,6 @@ interface NeedHelpFormProps {
   onSuccess: () => void
 }
 
-// Categorías más relevantes para una emergencia personal inmediata
 const URGENT_CATEGORIES: ReportCategory[] = [
   'personas_atrapadas',
   'heridos',
@@ -30,9 +29,6 @@ export function NeedHelpForm({ onClose, onSuccess }: NeedHelpFormProps) {
   const [description, setDescription] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // Intentamos GPS automáticamente al abrir, para que sea instantáneo cuando funciona.
-  // Pero las 4 opciones de ubicación (GPS, búsqueda, mapa, coordenadas) están visibles
-  // desde el primer instante — nunca se bloquea a la persona esperando solo al GPS.
   useEffect(() => {
     getCurrentLocation()
       .then((coords) => {
@@ -42,13 +38,13 @@ export function NeedHelpForm({ onClose, onSuccess }: NeedHelpFormProps) {
       .catch(() => {
         setGpsAttempting(false)
       })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const canSubmit = location !== null && category !== null
 
   const handleSubmit = async () => {
-    if (location === null || category === null) return
+    if (!location || !category) return
+
     setSubmitError(null)
 
     const { success, error } = await createReport({
@@ -56,7 +52,7 @@ export function NeedHelpForm({ onClose, onSuccess }: NeedHelpFormProps) {
       longitude: location.longitude,
       address: location.address,
       category,
-      title: `Solicitud de ayuda: ${CATEGORY_CONFIG[category].label}`,
+      title: `Ayuda urgente: ${CATEGORY_CONFIG[category].label}`,
       description: description.trim() || null,
       status: 'sin_verificar',
       priority: 'critica',
@@ -67,49 +63,65 @@ export function NeedHelpForm({ onClose, onSuccess }: NeedHelpFormProps) {
     if (success) {
       onSuccess()
     } else {
-      setSubmitError(error ?? 'No se pudo publicar. Intenta de nuevo.')
+      setSubmitError(error ?? 'No se pudo publicar. Intenta nuevamente.')
     }
   }
 
   return (
-    <Modal title="🆘 Necesito Ayuda" onClose={onClose}>
-      <div className="space-y-5">
-        {}
+    <Modal title="🆘 Solicitar ayuda urgente" onClose={onClose}>
+      <div className="space-y-6">
+
+        {/* UBICACIÓN */}
         <div className="space-y-3">
-          <h3 className="font-semibold text-ink-primary">¿Dónde estás?</h3>
+          <h3 className="font-semibold text-neutral-900">
+            Indica tu ubicación
+          </h3>
 
           {gpsAttempting && (
-            <div className="p-3 rounded-lg text-sm bg-bg-secondary dark:bg-neutral-800 text-ink-primary dark:text-neutral-200">
-              📍 Intentando obtener tu ubicación automáticamente... también puedes elegir otra
-              opción abajo en cualquier momento.
+            <div className="p-3 rounded-lg text-sm bg-neutral-100 text-neutral-700">
+              📍 Intentando detectar tu ubicación automáticamente…
+              Puedes cambiarlo en cualquier momento abajo.
             </div>
           )}
 
           <LocationPicker value={location} onChange={setLocation} />
         </div>
 
-        {/* Categoría */}
-        <div>
-          <h3 className="font-semibold mb-3 text-ink-primary">
-            ¿Qué está pasando?
+        {/* CATEGORÍAS */}
+        <div className="space-y-3">
+          <h3 className="font-semibold text-neutral-900">
+            ¿Qué está ocurriendo?
           </h3>
+
           <div className="grid grid-cols-2 gap-3">
             {URGENT_CATEGORIES.map((cat) => {
               const config = CATEGORY_CONFIG[cat]
               const isSelected = category === cat
+
               return (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`flex items-center gap-2 p-4 rounded-xl border-2 ${
-                    isSelected
-                      ? 'border-critical bg-critical/10 '
-                      : 'border-border'
-                  }`}
+                  className={`
+                    flex items-center gap-3
+
+                    p-4
+
+                    rounded-lg
+
+                    border
+
+                    transition
+
+                    ${isSelected
+                      ? 'border-[#C62828] bg-[#C62828]/10'
+                      : 'border-neutral-200 bg-white'}
+                  `}
                 >
                   <span className="text-2xl">{config.emoji}</span>
-                  <span className="text-sm font-bold text-left leading-tight text-ink-primary ">
+
+                  <span className="text-sm font-semibold text-left leading-tight text-neutral-900">
                     {config.label}
                   </span>
                 </button>
@@ -118,33 +130,71 @@ export function NeedHelpForm({ onClose, onSuccess }: NeedHelpFormProps) {
           </div>
         </div>
 
+        {/* DESCRIPCIÓN */}
         <div>
-          <label className="text-sm font-medium block mb-1 text-ink-primary">
-            Descripción breve (opcional)
+          <label className="text-sm font-medium block mb-2 text-neutral-800">
+            Detalles (opcional)
           </label>
+
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="¿Algo más que debamos saber?"
-            rows={2}
-            className="w-full p-3 text-base rounded-lg border border-border bg-bg-primary text-ink-primary"
+            placeholder="Describe brevemente lo que ocurre"
+            rows={3}
+            className="
+              w-full
+              p-3
+
+              text-sm
+
+              border border-neutral-200
+              rounded-lg
+
+              bg-white
+              text-neutral-900
+            "
           />
         </div>
 
+        {/* ERROR */}
         {submitError && (
-          <p className="text-sm text-critical bg-critical/10 p-3 rounded-lg">
+          <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
             {submitError}
           </p>
         )}
 
+        {/* BOTÓN PRINCIPAL (MÁS EMERGENCIA REAL) */}
         <button
           type="button"
           disabled={!canSubmit || submitting}
           onClick={handleSubmit}
-          className="w-full py-5 rounded-xl font-bold text-xl text-white bg-critical disabled:opacity-40"
+          className="
+            w-full
+
+            py-5
+
+            rounded-lg
+
+            font-black
+            text-lg
+
+            text-white
+
+            bg-[#C62828]
+            hover:bg-[#B71C1C]
+
+            shadow-md
+
+            disabled:opacity-40
+
+            active:scale-[0.99]
+
+            transition
+          "
         >
-          {submitting ? 'Publicando...' : 'PUBLICAR AHORA'}
+          {submitting ? 'PUBLICANDO...' : 'PEDIR AYUDA AHORA'}
         </button>
+
       </div>
     </Modal>
   )
