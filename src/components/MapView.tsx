@@ -1,15 +1,13 @@
 import { useEffect, useRef } from 'react'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import 'leaflet.markercluster'
-import 'leaflet.markercluster/dist/MarkerCluster.css'
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
-import 'leaflet.heat'
-import type { Report, ReportCategory } from '../types/database'
-import { CATEGORY_CONFIG, URGENT_HEATMAP_CATEGORIES } from '../lib/categoryConfig'
+import { loadGoogleMaps } from '../lib/googleMaps'
+import type { Report, ReportCategory, ReportPriority } from '../types/database'
+import { MarkerClusterer } from '@googlemaps/markerclusterer'
+import {
+  CATEGORY_CONFIG,
+  URGENT_HEATMAP_CATEGORIES,
+} from '../lib/categoryConfig'
 
-// Coordenadas centrales de Venezuela (vista inicial del mapa)
-const VENEZUELA_CENTER: [number, number] = [8.0, -66.0]
+const VENEZUELA_CENTER = { lat: 8.0, lng: -66.0 }
 const DEFAULT_ZOOM = 6
 
 interface MapViewProps {
@@ -20,24 +18,6 @@ interface MapViewProps {
   heatmapEnabled: boolean
 }
 
-function buildEmojiIcon(category: Report['category']): L.DivIcon {
-  const config = CATEGORY_CONFIG[category]
-  return L.divIcon({
-    html: `<div style="
-      background:${config.color};
-      width:36px;height:36px;
-      border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      font-size:18px;
-      border:2px solid white;
-      box-shadow:0 1px 4px rgba(0,0,0,0.4);
-    ">${config.emoji}</div>`,
-    className: '',
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-  })
-}
-
 export function MapView({
   reports,
   selectedReportId,
@@ -45,109 +25,166 @@ export function MapView({
   visibleCategories,
   heatmapEnabled,
 }: MapViewProps) {
-  const mapContainerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<L.Map | null>(null)
-  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null)
-  const heatLayerRef = useRef<L.HeatLayer | null>(null)
-  const markersByIdRef = useRef<Map<string, L.Marker>>(new Map())
 
-  // Inicializar el mapa una sola vez
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstance = useRef<google.maps.Map | null>(null)
+  const markersRef = useRef<Map<string, google.maps.Marker>>(new Map())
+  const clusterRef = useRef<MarkerClusterer | null>(null)
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null)
+  const heatmapRef = useRef<any>(null)
+
+  // ✅ INIT MAP (seguro)
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return
+    let mounted = true
 
-    const map = L.map(mapContainerRef.current, {
-      center: VENEZUELA_CENTER,
-      zoom: DEFAULT_ZOOM,
-      zoomControl: true,
-      attributionControl: true,
-    })
+    async function init() {
+      if (!mapRef.current || mapInstance.current) return
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors',
-    }).addTo(map)
+      const google = await loadGoogleMaps()
+      if (!mounted) return
 
-    const clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 50,
-      spiderfyOnMaxZoom: true,
-    })
-    map.addLayer(clusterGroup)
+      const map = new google.maps.Map(mapRef.current, {
+        center: VENEZUELA_CENTER,
+        zoom: DEFAULT_ZOOM,
+        mapTypeControl: true,
+        streetViewControl: false,
+        fullscreenControl: false,
 
-    const heatLayer = L.heatLayer([], {
-      radius: 35,
-      blur: 25,
-      maxZoom: 12,
-      gradient: { 0.2: '#F59E0B', 0.5: '#EA580C', 1.0: '#DC2626' },
-    })
+        draggable: true,
+        scrollwheel: true, 
+        gestureHandling: "auto" 
+      })
 
-    mapRef.current = map
-    clusterGroupRef.current = clusterGroup
-    heatLayerRef.current = heatLayer
+      mapInstance.current = map
+      infoWindowRef.current = new google.maps.InfoWindow()
+
+      if ((google.maps as any).visualization) {
+        heatmapRef.current = new (google.maps as any).visualization.HeatmapLayer({
+          radius: 35,
+        })
+      }
+    }
+
+    init()
 
     return () => {
-      map.remove()
-      mapRef.current = null
+      mounted = false
     }
   }, [])
 
-  // Sincronizar marcadores cuando cambian los reportes o las categorías visibles
+  // ✅ MARKERS + CLUSTER (FIX REAL)
   useEffect(() => {
-    const clusterGroup = clusterGroupRef.current
-    if (!clusterGroup) return
+    const map = mapInstance.current
+    const infoWindow = infoWindowRef.current
+    if (!map || !infoWindow) return
 
-    clusterGroup.clearLayers()
-    markersByIdRef.current.clear()
+    // limpiar markers
+    markersRef.current.forEach((m) => m.setMap(null))
+    markersRef.current.clear()
 
-    const filteredReports = reports.filter((report) => visibleCategories.has(report.category))
+    if (clusterRef.current) {
+      clusterRef.current.clearMarkers()
+    }
 
-    filteredReports.forEach((report) => {
-      const marker = L.marker([report.latitude, report.longitude], {
-        icon: buildEmojiIcon(report.category),
+    const filtered = reports.filter((r) =>
+      visibleCategories.has(r.category)
+    )
+
+    const markers: google.maps.Marker[] = []
+
+    filtered.forEach((report) => {
+      const config = CATEGORY_CONFIG[report.category]
+
+      const marker = new google.maps.Marker({
+        position: {
+          lat: report.latitude,
+          lng: report.longitude,
+        },
+        map, // 🔥 IMPORTANTE (esto faltaba a veces)
+        icon: {
+          url:
+            'data:image/svg+xml;charset=UTF-8,' +
+            encodeURIComponent(`
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                <circle cx="20" cy="20" r="16" fill="${config.color}" stroke="white" stroke-width="2"/>
+                <text x="20" y="25" text-anchor="middle" font-size="16">
+                  ${config.emoji}
+                </text>
+              </svg>
+            `),
+          scaledSize: new google.maps.Size(40, 40),
+        },
       })
 
-      marker.bindPopup(
-        `<strong>${CATEGORY_CONFIG[report.category].emoji} ${report.title}</strong><br/>${
-          report.address ?? ''
-        }`
-      )
+      marker.addListener('click', () => {
+        onMarkerClick(report.id)
 
-      marker.on('click', () => onMarkerClick(report.id))
+        infoWindow.setContent(`
+          <div style="font-family:sans-serif;max-width:240px">
+            <div style="font-weight:700;font-size:14px;">
+              ${config.emoji} ${report.title}
+            </div>
 
-      markersByIdRef.current.set(report.id, marker)
-      clusterGroup.addLayer(marker)
+            ${report.address ? `<div style="font-size:12px;">📍 ${report.address}</div>` : ''}
+
+            ${report.description ? `<div style="font-size:12px;margin-top:6px;">${report.description}</div>` : ''}
+          </div>
+        `)
+
+        infoWindow.open(map, marker)
+      })
+
+      markersRef.current.set(report.id, marker)
+      markers.push(marker)
+    })
+
+    clusterRef.current = new MarkerClusterer({
+      map,
+      markers,
     })
   }, [reports, visibleCategories, onMarkerClick])
 
-  // Activar/desactivar y alimentar la capa de heatmap (solo categorías urgentes)
+  // ✅ ZOOM SELECTED
   useEffect(() => {
-    const map = mapRef.current
-    const heatLayer = heatLayerRef.current
-    if (!map || !heatLayer) return
+    const map = mapInstance.current
+    if (!map || !selectedReportId) return
 
-    if (heatmapEnabled) {
-      const points: L.HeatLatLngTuple[] = reports
-        .filter((report) => URGENT_HEATMAP_CATEGORIES.includes(report.category))
-        .map((report) => [report.latitude, report.longitude, 1])
+    const marker = markersRef.current.get(selectedReportId)
+    if (!marker) return
 
-      heatLayer.setLatLngs(points)
-      if (!map.hasLayer(heatLayer)) {
-        map.addLayer(heatLayer)
-      }
-    } else if (map.hasLayer(heatLayer)) {
-      map.removeLayer(heatLayer)
-    }
-  }, [reports, heatmapEnabled])
+    const pos = marker.getPosition()
+    if (!pos) return
 
-  // Hacer zoom/pan al reporte seleccionado desde el feed
-  useEffect(() => {
-    if (!selectedReportId) return
-    const map = mapRef.current
-    const marker = markersByIdRef.current.get(selectedReportId)
-    if (!map || !marker) return
-
-    map.setView(marker.getLatLng(), 15, { animate: true })
-    marker.openPopup()
+    map.panTo(pos)
+    map.setZoom(15)
   }, [selectedReportId])
 
-  return <div ref={mapContainerRef} className="h-full w-full" />
+  // 🔥 HEATMAP (FIX + SIN ROMPER MARKERS)
+  useEffect(() => {
+    const map = mapInstance.current
+    const heatmap = heatmapRef.current
+    const google = window.google
+
+    if (!map || !heatmap || !google) return
+
+    if (!heatmapEnabled) {
+      heatmap.setMap(null)
+      return
+    }
+
+    const weight = (p: ReportPriority) =>
+      p === 'critica' ? 6 : p === 'alta' ? 4 : p === 'media' ? 2 : 1
+
+    const points = reports
+      .filter((r) => URGENT_HEATMAP_CATEGORIES.includes(r.category))
+      .map((r) => ({
+        location: new google.maps.LatLng(r.latitude, r.longitude),
+        weight: weight(r.priority),
+      }))
+
+    heatmap.setData(points)
+    heatmap.setMap(map)
+  }, [reports, heatmapEnabled])
+
+  return <div ref={mapRef} className="w-full h-full" />
 }

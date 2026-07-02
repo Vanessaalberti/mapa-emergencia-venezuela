@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
-import L from 'leaflet'
+import { useState, useEffect } from 'react'
 import { useGeolocation } from '../hooks/useGeolocation'
 
 import {
@@ -8,6 +7,8 @@ import {
   Map,
   Hash,
 } from 'lucide-react'
+
+import { DraggableMiniMap } from './DraggableMiniMap'
 
 export interface SelectedLocation {
   latitude: number
@@ -84,7 +85,6 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
-  //const [searchedOnce, setSearchedOnce] = useState(false)
   const [manualLat, setManualLat] = useState('')
   const [manualLng, setManualLng] = useState('')
 
@@ -92,8 +92,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     useGeolocation()
 
   useEffect(() => {
-    if (value && !method) setMethod('gps')
-  }, [value, method])
+  if (!method && value) {
+    setMethod('gps')
+  }
+  }, [])
 
   const handleUseGps = async () => {
     setMethod('gps')
@@ -113,7 +115,6 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     if (searchQuery.trim().length < 3) return
 
     setSearching(true)
-    //setSearchedOnce(true)
 
     try {
       const results = await searchAddress(searchQuery)
@@ -150,7 +151,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   }
 
   /* ---------------------------
-     OPTION CARD (FIX UX)
+     OPTION CARD
   --------------------------- */
 
   const OptionCard = ({
@@ -164,37 +165,18 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       type="button"
       onClick={onClick}
       className={`
-        flex items-center gap-3
-
-        p-4
-        border
-        rounded-md
-
-        transition
-
-        text-left
-
-        ${active
-          ? 'border-[#0B3A6E] bg-blue-50'
-          : 'border-neutral-200 bg-white'}
+        flex items-center gap-3 p-4 border rounded-md text-left transition
+        ${active ? 'border-[#0B3A6E] bg-blue-50' : 'border-neutral-200 bg-white'}
       `}
     >
-      {/* ICON */}
-      <div className="flex-shrink-0">
-        <Icon
-          size={22}
-          className={active ? 'text-[#0B3A6E]' : 'text-neutral-600'}
-        />
-      </div>
+      <Icon
+        size={22}
+        className={active ? 'text-[#0B3A6E]' : 'text-neutral-600'}
+      />
 
-      {/* TEXT */}
       <div className="flex flex-col">
-        <span className="text-sm font-semibold text-neutral-900">
-          {title}
-        </span>
-        <span className="text-xs text-neutral-500 leading-tight">
-          {description}
-        </span>
+        <span className="text-sm font-semibold">{title}</span>
+        <span className="text-xs text-neutral-500">{description}</span>
       </div>
     </button>
   )
@@ -258,11 +240,9 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === 'Enter' && handleSearch()
-            }
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Calle, barrio o referencia"
-            className="w-full px-3 py-3 border border-neutral-300 rounded-md text-sm"
+            className="w-full px-3 py-3 border rounded-md text-sm"
           />
 
           <button
@@ -284,12 +264,12 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         </div>
       )}
 
-      {/* MAP (ONLY ONCE - FIXED BUG) */}
+      {/* MAP (UNIFICADO Y ESCALABLE) */}
       {method === 'map' && (
-        <MiniMapPicker
-          initialLat={value?.latitude}
-          initialLng={value?.longitude}
-          onSelect={async (lat, lng) => {
+        <DraggableMiniMap
+          lat={value?.latitude ?? 8}
+          lng={value?.longitude ?? -66}
+          onChange={async (lat, lng) => {
             const address = await reverseGeocode(lat, lng)
             onChange({ latitude: lat, longitude: lng, address })
           }}
@@ -330,58 +310,5 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         </div>
       )}
     </div>
-  )
-}
-
-/* =========================
-   MINI MAP
-========================= */
-
-function MiniMapPicker({
-  initialLat,
-  initialLng,
-  onSelect,
-}: {
-  initialLat?: number
-  initialLng?: number
-  onSelect: (lat: number, lng: number) => void
-}) {
-  const ref = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<L.Map | null>(null)
-
-  useEffect(() => {
-    if (!ref.current || mapRef.current) return
-
-    const map = L.map(ref.current, {
-      center: [initialLat ?? 8, initialLng ?? -66],
-      zoom: initialLat ? 14 : 6,
-    })
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap',
-    }).addTo(map)
-
-    let marker: L.Marker | null = null
-
-    map.on('click', (e) => {
-      if (marker) marker.setLatLng(e.latlng)
-      else marker = L.marker(e.latlng).addTo(map)
-
-      onSelect(e.latlng.lat, e.latlng.lng)
-    })
-
-    mapRef.current = map
-
-    return () => {
-      map.remove()
-      mapRef.current = null
-    }
-  }, [])
-
-  return (
-    <div
-      ref={ref}
-      className="h-56 w-full border rounded-md overflow-hidden"
-    />
   )
 }
